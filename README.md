@@ -2,9 +2,11 @@
 
 通过强化学习 PPO 算法玩 Flappy Bird。
 
+![](gif/display.gif)
+
 ```bash
-git clone https://github.com/windshadow/flappy-bird-RL.git
-cd flappy-bird-RL
+git clone https://github.com/windshadow/flappy-bird-ppo.git
+cd flappy-bird-ppo
 pip install -r requirements.txt
 ```
 

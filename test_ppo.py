@@ -55,11 +55,12 @@ def play(display=False, rand=True):
         reward_sum += reward
 
         state = next_state
+        print(f"Reward: {round(reward_sum, 1)}", end='\r')
         if terminal:
             break
     return data, reward_sum
 
 
-print(play(display=args.display, rand=False)[-1])
+print("Reward: ", round(play(display=args.display, rand=False)[-1], 1))
 pygame.quit()
 sys.exit()
