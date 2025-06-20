@@ -19,7 +19,7 @@ python train_ppo.py
 ## 测试
 
 ```bash
-python test_ppo.py -ckpt ./ppo/models/best_model.pth -d -s 123456
+python test_ppo.py -ckpt ./ppo/models/best.pth -d -s 123456
 ```
 
 - `-ckpt`：指定模型路径
