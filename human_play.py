@@ -8,7 +8,7 @@ def play_human():
     os.environ.pop("SDL_VIDEODRIVER", None)
     game = FlappyBird()
     _, reward, terminal = game.next_frame(0)
-    total_reward = reward
+    reward_sum = reward
 
     game.count_down(3)
 
@@ -22,12 +22,13 @@ def play_human():
                 action = 1  # flap
 
         _, reward, terminal = game.next_frame(action)
-        total_reward += reward
+        reward_sum += reward
 
+        print(f"Reward: {round(reward_sum, 1)}", end='\r')
         if terminal:
             break
 
-    print("Game Over. Total Reward:", total_reward)
+    print("Game Over. Reward:", round(reward_sum, 1))
 
 
 if __name__ == "__main__":
