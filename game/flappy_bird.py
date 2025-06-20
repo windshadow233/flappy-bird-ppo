@@ -14,7 +14,7 @@ import numpy as np
 import os
 import pygame
 from utils import pre_processing
-from .game_config import *
+from game.game_config import *
 
 randint = random.randint
 
@@ -41,24 +41,37 @@ class FlappyBird(object):
         self.render = os.getenv('SDL_VIDEODRIVER') != 'dummy'
 
         if self.render:
-            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+            self.screen = pygame.display.set_mode(
+                (self.screen_width, self.screen_height))
             pygame.display.set_caption('RL Flappy Bird')
         else:
             pygame.display.set_mode((1, 1), flags=pygame.HIDDEN)
-            self.screen = pygame.Surface((self.screen_width, self.screen_height))
+            self.screen = pygame.Surface(
+                (self.screen_width, self.screen_height))
 
         for event in pygame.event.get():
             pass
 
         self.base_image = load('game/assets/sprites/base.png').convert_alpha()
-        self.background_image = load('game/assets/sprites/background-black.png').convert()
-        self.pipe_images = [rotate(load('game/assets/sprites/pipe-green.png').convert_alpha(), 180),
-                            load('game/assets/sprites/pipe-green.png').convert_alpha()]
-        self.bird_images = [load('game/assets/sprites/redbird-upflap.png').convert_alpha(),
-                            load('game/assets/sprites/redbird-midflap.png').convert_alpha(),
-                            load('game/assets/sprites/redbird-downflap.png').convert_alpha()]
-        self.bird_hitmask = [pixels_alpha(image).astype(bool) for image in self.bird_images]
-        self.pipe_hitmask = [pixels_alpha(image).astype(bool) for image in self.pipe_images]
+        self.background_image = load(
+            'game/assets/sprites/background-black.png').convert()
+        self.pipe_images = [
+            rotate(
+                load('game/assets/sprites/pipe-green.png').convert_alpha(),
+                180),
+            load('game/assets/sprites/pipe-green.png').convert_alpha()
+        ]
+        self.bird_images = [
+            load('game/assets/sprites/redbird-upflap.png').convert_alpha(),
+            load('game/assets/sprites/redbird-midflap.png').convert_alpha(),
+            load('game/assets/sprites/redbird-downflap.png').convert_alpha()
+        ]
+        self.bird_hitmask = [
+            pixels_alpha(image).astype(bool) for image in self.bird_images
+        ]
+        self.pipe_hitmask = [
+            pixels_alpha(image).astype(bool) for image in self.pipe_images
+        ]
 
         self.iter = self.bird_index = self.score = 0
 
@@ -72,7 +85,8 @@ class FlappyBird(object):
 
         self.base_x = 0
         self.base_y = self.screen_height * 0.79
-        self.base_shift = self.base_image.get_width() - self.background_image.get_width()
+        self.base_shift = self.base_image.get_width(
+        ) - self.background_image.get_width()
 
         pipes = [self.generate_pipe(), self.generate_pipe()]
         pipes[0]["x_upper"] = pipes[0]["x_lower"] = self.screen_width
@@ -86,17 +100,27 @@ class FlappyBird(object):
         x = self.screen_width + 10
         gap_y = randint(2, 9) * 10 + int(self.base_y / 5)
         gap_size = randint(*GAP_SIZE_RANGE)
-        return {"x_upper": float(x), "y_upper": float(gap_y - self.pipe_height), "x_lower": float(x), "y_lower": float(gap_y + gap_size)}
+        return {
+            "x_upper": float(x),
+            "y_upper": float(gap_y - self.pipe_height),
+            "x_lower": float(x),
+            "y_lower": float(gap_y + gap_size)
+        }
 
     def is_collided(self):
         # Check if the bird touch ground
         if self.bird_height + self.bird_y + 1 >= self.base_y:
             return True
-        bird_bbox = Rect(self.bird_x, self.bird_y, self.bird_width, self.bird_height)
+        bird_bbox = Rect(self.bird_x, self.bird_y, self.bird_width,
+                         self.bird_height)
         pipe_boxes = []
         for pipe in self.pipes:
-            pipe_boxes.append(Rect(pipe["x_upper"], pipe["y_upper"], self.pipe_width, self.pipe_height))
-            pipe_boxes.append(Rect(pipe["x_lower"], pipe["y_lower"], self.pipe_width, self.pipe_height))
+            pipe_boxes.append(
+                Rect(pipe["x_upper"], pipe["y_upper"], self.pipe_width,
+                     self.pipe_height))
+            pipe_boxes.append(
+                Rect(pipe["x_lower"], pipe["y_lower"], self.pipe_width,
+                     self.pipe_height))
             # Check if the bird's bounding box overlaps to the bounding box of any pipe
             if bird_bbox.collidelist(pipe_boxes) == -1:
                 return False
@@ -106,15 +130,20 @@ class FlappyBird(object):
                 min_y1 = cropped_bbox.y - bird_bbox.y
                 min_x2 = cropped_bbox.x - pipe_boxes[i].x
                 min_y2 = cropped_bbox.y - pipe_boxes[i].y
-                if np.any(self.bird_hitmask[self.bird_index][min_x1:min_x1 + cropped_bbox.width,
-                       min_y1:min_y1 + cropped_bbox.height] * self.pipe_hitmask[i][min_x2:min_x2 + cropped_bbox.width,
-                                                              min_y2:min_y2 + cropped_bbox.height]):
+                if np.any(self.bird_hitmask[
+                        self.bird_index][min_x1:min_x1 + cropped_bbox.width,
+                                         min_y1:min_y1 + cropped_bbox.height] *
+                          self.pipe_hitmask[i][min_x2:min_x2 +
+                                               cropped_bbox.width,
+                                               min_y2:min_y2 +
+                                               cropped_bbox.height]):
                     return True
         return False
 
     def step(self, action, last_state=None):
         image, reward, terminal = self.next_frame(action)
-        image = pre_processing(image[:self.screen_width, :int(self.base_y)], self.image_size, self.image_size)
+        image = pre_processing(image[:self.screen_width, :int(self.base_y)],
+                               self.image_size, self.image_size)
         image = torch.from_numpy(image)
         if last_state is not None:
             state = torch.cat((last_state[1:], image), dim=0)
@@ -140,7 +169,8 @@ class FlappyBird(object):
 
             if remaining > 0:
                 text = font.render(str(remaining), True, (255, 255, 255))
-                rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
+                rect = text.get_rect(center=(self.screen.get_width() // 2,
+                                             self.screen.get_height() // 2))
                 self.screen.blit(text, rect)
             else:
                 break
@@ -151,10 +181,13 @@ class FlappyBird(object):
     def render_screen(self):
         self.screen.blit(self.background_image, (0, 0))
         self.screen.blit(self.base_image, (self.base_x, self.base_y))
-        self.screen.blit(self.bird_images[self.bird_index], (self.bird_x, self.bird_y))
+        self.screen.blit(self.bird_images[self.bird_index],
+                         (self.bird_x, self.bird_y))
         for pipe in self.pipes:
-            self.screen.blit(self.pipe_images[0], (pipe["x_upper"], pipe["y_upper"]))
-            self.screen.blit(self.pipe_images[1], (pipe["x_lower"], pipe["y_lower"]))
+            self.screen.blit(self.pipe_images[0],
+                             (pipe["x_upper"], pipe["y_upper"]))
+            self.screen.blit(self.pipe_images[1],
+                             (pipe["x_lower"], pipe["y_lower"]))
         display.update()
 
     def next_frame(self, action):
@@ -186,7 +219,9 @@ class FlappyBird(object):
             self.current_velocity_y += self.downward_speed
         if self.is_flapped:
             self.is_flapped = False
-        self.bird_y += min(self.current_velocity_y, self.bird_y - self.current_velocity_y - self.bird_height)
+        self.bird_y += min(
+            self.current_velocity_y,
+            self.bird_y - self.current_velocity_y - self.bird_height)
         if self.bird_y < 0:
             self.bird_y = 0
 

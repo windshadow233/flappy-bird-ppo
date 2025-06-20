@@ -1,5 +1,4 @@
 from torch import nn
-import torch
 
 
 class ActionModel(nn.Module):
